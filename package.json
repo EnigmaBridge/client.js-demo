@@ -1,16 +1,19 @@
 {
-  "name": "ebrest",
+  "name": "ebclient-demo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "express": "^4.13.4",
-    "sprintf-js": "^1.0.3"
+    "ebclient.js": "^0.1"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": {
+    "name": "Dusan Klinec",
+    "email": "dusan@enigmabridge.com",
+    "url": "https://enigmabridge.com/"
+  },
+  "license": "MIT"
 }

@@ -2,6 +2,7 @@
  * Created by dusanklinec on 06.04.16.
  * Common JS methods for all demos
  */
+var sjcl = eb.misc.sjcl;
 
 function set_request(msg){
     $("#reqRest").html(msg);
@@ -18,6 +19,11 @@ function formatDate(date) {
     var milli = date.getMilliseconds();
     var strTime = sprintf("%02d:%02d:%02d.%03d", hours, minutes, sec, milli);
     return date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + strTime;
+}
+
+function posmod(a, b){
+    var r = a % b;
+    return Math.abs(r >= 0 ? r : b+r);
 }
 
 function append_message(msg) {
@@ -65,5 +71,69 @@ function toggleCategory(){
     });
 }
 
+/**
+ * Sets given element as disabled.
+ * @param elem
+ * @param disabled
+ */
+function setDisabled(elem, disabled){
+    elem.prop('disabled', disabled);
+}
+
+/**
+ * Returns true if given radio button / checkbox is checked.
+ * @param elem
+ * @returns {*}
+ */
+function isChecked(elem){
+    return elem.is(':checked');
+}
+
+/**
+ * Returns if given element is completelly visible on the screen.
+ * @param elem
+ * @param partially if true partially visibility is OK -> no scrolling
+ */
+function isVisibleOnScreen(elem, partially){
+    return elem.visible(partially === undefined ? false : partially, false, "both");
+}
+
+/**
+ * Scrolls given element in such a way it is visible on the bottom.
+ * @param D
+ */
+function scrollToElementBottom(D)
+{
+    var top = D.offset().top - 200;
+    if($('.sticky-nav').length) // Sticky Nav in use
+    {
+        D = D-100;
+    }
+
+    $('html,body').animate({scrollTop:top}, 'slow');
+}
+
+/**
+ * Scrolls to element if not visible
+ * @param elem
+ * @param partially if true partially visibility is OK -> no scrolling
+ */
+function scrollToIfNotVisible(elem, partially){
+    if (!isVisibleOnScreen(elem, partially)){
+        scrollToElementBottom(elem);
+    }
+}
+
+/**
+ * Switches main loading overlay.
+ * @param started if true overlay is displayed. Hidden otherwise.
+ */
+function bodyProgress(started){
+    if (started){
+        $("body").addClass("loading");
+    } else {
+        $("body").removeClass("loading");
+    }
+}
 
 

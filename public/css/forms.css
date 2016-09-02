@@ -203,7 +203,7 @@
 
 .modal .modal-wrap {
     background: rgba( 255, 255, 255, .90 )
-    url('ajax-loader.gif')
+    url('../ajax-loader.gif')
     50% 50%
     no-repeat;
 

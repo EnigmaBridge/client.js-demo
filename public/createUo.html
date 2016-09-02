@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create user object demo</title>
+    <link rel="shortcut icon" type="image/png" href="favicon.png" />
+    <style>
+        body,p,td,input {font-family: Arial, Helvetica, sans-serif; font-size: 10pt;}
+        h1 {font-size: 14pt; }
+        h2 {font-size: 12pt; }
+        button[disabled],
+        input[disabled]{
+            background-color: #F8F8F8 !important;
+        }
+        input,
+        textarea {
+            font-family: monospace;
+        }
+
+    </style>
+    <link href='css/googleapi-FamilyBitter.css' rel='stylesheet' type='text/css'/>
+    <link href="css/forms.css" rel="stylesheet" type="text/css"/>
+    <link href="css/create.css" rel="stylesheet" type="text/css"/>
+
+    <script src="js/jquery-1.12.1.min.js"></script>
+    <script src="js/sprintf.js"></script>
+    <script src="js/jquery.qrcode.min.js"></script>
+    <script src="js/he.js"></script>
+    <script src="js/enigma.js"></script>
+    <script src="js/demo.js"></script>
+    <script>
+        "use strict";
+        var defaults = {
+            site: "site2.enigmabridge.com"
+        };
+
+        var sjcl = eb.misc.sjcl;
+
+        // Other fields.
+        var catConfig;
+        var btnCreate;
+        var fldEndpoint;
+        var fldStatus;
+        var fldLog;
+
+        var fldAppKey;
+        var fldCommKey;
+        var fldEncKey;
+        var fldMacKey;
+        var fldUoType;
+        var chkEbAppGen;
+        var chkEbComGen;
+        var chkCoreOne;
+    </script>
+</head>
+<body>
+
+<!-- form design: http://www.sanwebe.com/2014/08/css-html-forms-designs -->
+<div class="form-style-10">
+    <h1>Create UO<span>EnigmaBridge demo</span></h1>
+    <div>
+        <div class="section"><span>1</span>Input</div>
+        <div class="inner-wrap">
+            <label>App key
+                <input type="text" id="fldAppKey" placeholder="App key" value="00000000000000000000000000000000"/>
+                <span>Application key in UO.
+                <a onclick="fldAppKey.val(eb.misc.genHexNonce(32));">Random</a>
+                </span>
+            </label>
+            <label>Comm key - Single derivation
+                <input type="text" id="fldCommKey" placeholder="Comm key deriv" value="00000000000000000000000000000000"/>
+                <span>Single comm key derivation source - if changed, encKey, macKey changes
+                <a onclick="fldCommKey.val(eb.misc.genHexNonce(32));onCommChanged();">Random</a>
+                </span>
+            </label>
+            <label>Comm key - EncKey
+                <input type="text" id="fldEncKey" placeholder="Enc key" value="0000000000000000000000000000000000000000000000000000000000000000"/>
+                <span>Application key in UO</span>
+            </label>
+            <label>Comm key - MacKey
+                <input type="text" id="fldMacKey" placeholder="Mac key" value="0000000000000000000000000000000000000000000000000000000000000000"/>
+                <span>Application key in UO</span>
+            </label>
+            <label>UO type
+                <select id="fldUoType">
+                    <option value="4">PLAINAES</option>
+                    <option value="f">PLAINAESDECRYPT</option>
+                    <option value="10">RANDOMDATA</option>
+                    <option value="1">HMAC</option>
+                    <option value="5">RSA1024DECRYPT_NOPAD</option>
+                    <option value="6">RSA2048DECRYPT_NOPAD</option>
+                    <option value="12">RSA1024ENCRYPT_NOPAD</option>
+                    <option value="13">RSA2048ENCRYPT_NOPAD</option>
+                </select>
+            </label>
+            <label><input type="checkbox" id="chkEbAppGen" value="1">
+                Use App key from form
+            </label>
+
+            <label><input type="checkbox" id="chkEbComGen" value="1">
+                Use Comm keys from form
+            </label>
+
+            <label><input type="checkbox" id="chkCoreOne" value="1">
+                Keep loaded on 1 Core
+            </label>
+
+        </div>
+
+        <div class="section" id="divConfigHead">
+            <span>2</span>
+            Configuration
+            <div class="collapser">[-]</div>
+        </div>
+        <div class="inner-wrap" id="divConfig">
+            <label>API Key
+                <input type="text" name="apiKey" id="apiKey" value="TEST_API"/>
+                <span>Your EB API key</span>
+            </label>
+
+            <label>User object ID
+                <input type="text" name="userObjectID" id="userObjectID" value="0004"/>
+                <span>UO to use for creating a new UOs</span>
+            </label>
+
+            <label>Endpoint
+                <input type="text" name="endpoint" id="endpoint" placeholder="endpoint.address.com"/>
+                <span>Hostname of the EB API
+                    <a onclick="$('#endpoint').val(defaults.site1);">site1</a>,
+                    <a onclick="$('#endpoint').val(defaults.site2);">site2</a></span>
+            </label>
+
+            <label>Port
+                <input type="text" name="fldPort" id="fldPort" placeholder="11182" value="11182"/>
+                <span>Port number</span>
+            </label>
+
+            <label>Method
+                <select id="requestMethod" name="requestMethod">
+                    <option value="POST">POST</option>
+                    <option value="GET">GET</option>
+                </select>
+            </label>
+
+            <label>Scheme
+                <select id="requestScheme" name="requestScheme">
+                    <option value="https">https</option>
+                    <option value="http">http</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="section"><span>3</span>Response</div>
+        <div class="inner-wrap">
+            <label>Status
+                <input type="text" name="fldStatus" id="fldStatus" placeholder="Status" readonly="readonly"/>
+                <span>Upload status</span>
+            </label>
+
+            <label>Last log
+                <input type="text" name="fldLog" id="fldLog" placeholder="last log line" readonly="readonly"/>
+                <span>Last log line</span>
+            </label>
+        </div>
+        <div class="button-section">
+            <input type="button" id="btnCreate" value="Create"/>
+        </div>
+    </div>
+
+    <br/>
+    <label for="reqRest">Request: </label>
+    <div id="reqRest" class="logbox"></div>
+    <br/>
+
+    <label for="status">Log: </label>
+    <div id="status" class="logbox"></div>
+
+    <script>
+        "use strict";
+
+        var logBuffer = {
+            buffer: [],
+            idx:0,
+            max:500
+        };
+
+        function log(msg){
+            console.log(formatDate(new Date()) + " " + msg);
+            append_message(msg);
+            try {
+                fldLog.val(formatDate(new Date()) + " " + msg);
+            }catch(e){
+
+            }
+        }
+
+        /**
+         * Get settings from the form.
+         */
+        function getSettings(){
+            var apiKey = $('#apiKey').val();
+            var keyId = parseInt($('#userObjectID').val(), 16);
+            var endpoint = $('#endpoint').val();
+            var port = $('#fldPort').val();
+            var method = $('#requestMethod').val();
+            var scheme = $('#requestScheme').val();
+            var aesKey = $('#aesKey').val();
+            var macKey = $('#macKey').val();
+
+            return {
+                remoteEndpoint: endpoint,
+                remotePort: port,
+                requestMethod: method,
+                requestScheme: scheme,
+                requestTimeout: 30000,
+                debuggingLog: true,
+                apiKey: apiKey,
+                apiKeyLow4Bytes: keyId,
+                userObjectId : keyId,
+                aesKey: aesKey,
+                macKey: macKey,
+            };
+        }
+
+        function getUoType(fnc, clientGenAppKey, clientGenComKey){
+            var uotype  = fnc;
+            uotype |= isChecked(chkEbAppGen) ? 1<<21 : 0;
+            uotype |= isChecked(chkEbComGen) ? 1<<20 : 0;
+            return uotype;
+        }
+
+        /**
+         * Generates communication keys from the input.
+         * Used to generate 2x 256bit comm keys from lower entropy key.
+         * @param {bitArray|String} input
+         * @returns {{enc, mac}}
+         */
+        function regenerateCommKeys(input){
+            var w = sjcl.bitArray;
+            var baInput = eb.misc.inputToBits(input);
+            var baEnc = sjcl.hash.sha256.hash(w.concat(baInput, [0x01]));
+            var baMac = sjcl.hash.sha256.hash(w.concat(baInput, [0x02]));
+            return {enc:baEnc, mac:baMac};
+        }
+
+        function onCommChanged(){
+            var inp = sjcl.codec.hex.toBits(fldCommKey.val());
+            var res = regenerateCommKeys(inp);
+            fldEncKey.val(sjcl.codec.hex.fromBits(res.enc));
+            fldMacKey.val(sjcl.codec.hex.fromBits(res.mac));
+        }
+
+        /**
+         * EB call - get create new UO template.
+         */
+        function createClicked(){
+            var settings = getSettings();
+            var request = new eb.comm.createUO.getUOTemplateRequest();
+            request.configure(settings);
+            request.logger = append_message;
+            var uotype = getUoType(parseInt(fldUoType.val(),16), isChecked(chkEbAppGen), isChecked(chkEbComGen));
+
+            var requestData = {
+                "type": sprintf("%x", uotype), //eb.comm.createUO.consts.uoType.PLAINAES,        //<32bit integer>,
+                "environment": eb.comm.createUO.consts.environment.DEV, // shows whether the UO should be for production (live), test (pre-production testing), or dev (development)
+                "maxtps": eb.comm.createUO.consts.maxtps.UNLIMITED, // maximum guaranteed TPS
+                "core": isChecked(chkCoreOne) ? eb.comm.createUO.consts.core._1 : eb.comm.createUO.consts.core.EMPTY, // how many cards have UO loaded permanently
+                "persistence": eb.comm.createUO.consts.persistence._1min, // once loaded onto card, how long will the UO stay there without use (this excludes the "core")
+                "priority": eb.comm.createUO.consts.priority.DEFAULT, // this defines a) priority when the server capacity is fully utilised and it also defines how quickly new copies of UO are installed (pre-empting icreasing demand)
+                "separation": eb.comm.createUO.consts.separation.TIME, // "complete" = only one UO can be loaded on a smartcard at one one time
+                "bcr": eb.comm.createUO.consts.YES,      // "yes" will ensure the UO is replicated to provide high availability for any possible service disruption
+                "unlimited": eb.comm.createUO.consts.YES,
+                "clientiv": eb.comm.createUO.consts.YES, //  if "yes", we expect the data starts with an IV to initialize decryption of data - this is for communication security
+                "clientdiv": eb.comm.createUO.consts.NO, // if "yes", we expect the data starting with a diversification 16B for communication keys
+                "resource": eb.comm.createUO.consts.resource.GLOBAL,
+                "credit": 32766, // <1-32767>, a limit a seed card can provide to the EB service
+                "generation": {
+                    "commkey": isChecked(chkEbComGen) ? eb.comm.createUO.consts.genKey.CLIENT : eb.comm.createUO.consts.genKey.LEGACY_RANDOM,
+                    "billingkey": eb.comm.createUO.consts.genKey.LEGACY_RANDOM,
+                    "appkey": isChecked(chkEbAppGen) ? eb.comm.createUO.consts.genKey.CLIENT : eb.comm.createUO.consts.genKey.LEGACY_RANDOM
+                }
+            };
+
+            // Callbacks settings.
+            request.done(function(response, requestObj, data) {
+                onTemplateFetched(response);
+
+            }).fail(function(failType, data){
+                if (failType == eb.comm.status.PDATA_FAIL_RESPONSE_FAILED){
+                    onTemplateFetched(data.response);
+
+                } else if (failType == eb.comm.status.PDATA_FAIL_CONNECTION){
+                    log("Connection error");
+                    connectionError(data);
+                }
+
+            }).always(function(request, data){
+                bodyProgress(false);
+                setDisabled(btnCreate, false);
+
+            });
+
+            // Build the request so we can display request in the form.
+            request.build(requestData);
+            log("Request: ");
+            console.log(requestData);
+            log(JSON.stringify(requestData));
+
+            //setDisabled(btnCreate, true);
+            bodyProgress(true);
+            request.doRequest();
+        }
+
+        function connectionError(data){
+            statusFieldSet(fldStatus, "Connection error", false);
+        }
+
+        /**
+         * On template was fetched
+         * @param {eb.comm.createUO.UOTemplateResponse} response
+         */
+        function onTemplateFetched(response){
+            var responseStatus = response.statusCode;
+            var status = sprintf("0x%04X", responseStatus);
+            if (responseStatus == eb.comm.status.SW_STAT_OK){
+                status += ' - Request successful';
+            } else {
+                status += ' - Failed, unknown error';
+            }
+
+            statusFieldSet(fldStatus, status, responseStatus == eb.comm.status.SW_STAT_OK);
+            if (responseStatus != eb.comm.status.SW_STAT_OK){
+                return;
+            }
+
+            // Create a new user object.
+            var tpl = response.uot;
+            var builder = new eb.comm.createUO.templateFiller({template: tpl, logger: log});
+
+            // New keys.
+            var keys = {
+                comenc:{
+                    key:sjcl.codec.hex.toBits(fldEncKey.val())},
+                commac:{
+                    key:sjcl.codec.hex.toBits(fldMacKey.val())},
+                comnextenc:{
+                    key:sjcl.random.randomWords(8)},
+                conextmac:{
+                    key:sjcl.random.randomWords(8)},
+                app:{
+                    key:sjcl.codec.hex.toBits(fldAppKey.val())}
+            };
+            var buildReq = builder.build({keys: keys});
+
+            // Create a new request.
+            importUo({templateResponse: response, template:tpl, request: buildReq});
+        }
+
+        /**
+         * Import UO - new EB operation.
+         * @param data
+         */
+        function importUo(data){
+            $('#userObjectID').val(data.templateResponse.uot.objectid);
+
+            var settings = getSettings();
+            var request = new eb.comm.createUO.importUORequest();
+            request.configure(settings);
+            request.logger = append_message;
+
+            var requestData = {
+                "objectid": data.templateResponse.uot.objectid,
+                "importkey": data.request.keyUsed.id,
+                "object": eb.misc.inputToHex(data.request.uo),
+                "authorization": data.templateResponse.uot.authorization
+            };
+
+            // Callbacks settings.
+            request.done(function(response, requestObj, data) {
+                onUOCreated(response);
+
+            }).fail(function(failType, data){
+                if (failType == eb.comm.status.PDATA_FAIL_RESPONSE_FAILED){
+                    onUOCreated(data.response);
+
+                } else if (failType == eb.comm.status.PDATA_FAIL_CONNECTION){
+                    log("Connection error");
+                    connectionError(data);
+                }
+
+            }).always(function(request, data){
+                bodyProgress(false);
+                setDisabled(btnCreate, false);
+
+            });
+
+            // Build the request so we can display request in the form.
+            request.build(requestData);
+            log("UO Import Request: ");
+            console.log(requestData);
+            log(JSON.stringify(requestData));
+
+            //setDisabled(btnCreate, true);
+            bodyProgress(true);
+            request.doRequest();
+        }
+
+        /**
+         * Response on importUORequest
+         * @param {eb.comm.createUO.importUOResponse} response
+         */
+        function onUOCreated(response){
+            var responseStatus = response.statusCode;
+            var status = sprintf("0x%04X", responseStatus);
+            if (responseStatus == eb.comm.status.SW_STAT_OK){
+                status += ' - Request successful';
+            } else {
+                status += ' - Failed, unknown error';
+            }
+
+            statusFieldSet(fldStatus, status, responseStatus == eb.comm.status.SW_STAT_OK);
+            if (responseStatus != eb.comm.status.SW_STAT_OK){
+                return;
+            }
+
+            log("UO Import Response: ");
+            console.log(response);
+            log(JSON.stringify(response));
+        }
+
+        $(function(){
+            // Start random number collectors.
+            sjcl.random.startCollectors();
+
+            // Init
+            btnCreate = $('#btnCreate');
+            catConfig = $('#divConfigHead');
+            fldEndpoint = $('#endpoint');
+            fldStatus = $('#fldStatus');
+            fldLog = $('#fldLog');
+            fldAppKey = $('#fldAppKey');
+            fldCommKey = $('#fldCommKey');
+            fldEncKey = $('#fldEncKey');
+            fldMacKey = $('#fldMacKey');
+            fldUoType = $('#fldUoType');
+            chkEbAppGen = $('#chkEbAppGen');
+            chkEbComGen = $('#chkEbComGen');
+            chkCoreOne = $('#chkCoreOne');
+
+            // Button click handling.
+            btnCreate.click(function(){
+                createClicked();
+            });
+            fldCommKey.keyup(function(evt) {
+                onCommChanged();
+            });
+
+            // Behavior.
+            fldEndpoint.val(defaults.site);
+            catConfig.click(toggleCategory);
+            catConfig.click();
+        });
+
+    </script>
+    <div class="modal"><div class="modal-wrap"></div></div>
+</body>
+</html>
